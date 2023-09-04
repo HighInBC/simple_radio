@@ -4,8 +4,6 @@
 */
 #include <avr/interrupt.h>
 
-byte channelAmount = 8;
-
 #define RADIO_ADDRESS 0xEA
 #define ADDR_MODULE 0xEE  //  Crossfire transmitter
 #define TYPE_CHANNELS 0x16
@@ -29,9 +27,8 @@ byte channelAmount = 8;
 
 uint8_t crsfPacket[CRSF_PACKET_SIZE];
 int rcChannels[CRSF_MAX_CHANNEL];
-uint32_t crsfTime = 0;
 
-enum chan_order {
+enum {
   THROTTLE,
   AILERON,
   ELEVATOR,
@@ -69,14 +66,14 @@ void setup()
   TCCR1B |= (1 << CS11) | (1 << CS10); // Set CS11 and CS10 bits for 64 prescaler
   TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
   sei(); // Enable global interrupts
+
 }
 
 void loop() {
-    int position = (millis() % 1000) - 500;
-    int servo_test = map(abs(position), 0, 500, CRSF_CHANNEL_MIN, CRSF_CHANNEL_MAX);
+    int state = ((millis() / 5000) % 2) ? CRSF_CHANNEL_MIN : CRSF_CHANNEL_MAX;
 
     for (uint8_t i = 0; i < CRSF_MAX_CHANNEL; i++) {
-        rcChannels[i] = servo_test;
+        rcChannels[i] = state;
     }
 }
 
